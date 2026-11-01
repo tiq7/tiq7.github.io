@@ -1,10 +1,10 @@
 {
-  "id": "./strategie.html",
+  "id": "./",
   "name": "T·IQ+7 — A Game of Challenge",
   "short_name": "T·IQ+7",
   "description": "Jeu de stratégie à deux joueurs, en local, contre l'ordinateur ou en ligne.",
   "lang": "fr",
-  "start_url": "./strategie.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "display_override": ["fullscreen", "standalone"],

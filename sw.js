@@ -1,6 +1,6 @@
 // T·IQ+7 — service worker. Changer VERSION à chaque mise en ligne d'une nouvelle version.
-const VERSION = "tiq7-v1";
-const FILES = ["./strategie.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
+const VERSION = "tiq7-v2";
+const FILES = ["./", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -20,8 +20,8 @@ self.addEventListener("fetch", e => {
   // Page du jeu : réseau d'abord (toujours la dernière version), cache si hors ligne
   if (r.mode === "navigate") {
     e.respondWith(
-      fetch(r).then(res => { const cp = res.clone(); caches.open(VERSION).then(c => c.put("./strategie.html", cp)); return res; })
-        .catch(() => caches.match("./strategie.html"))
+      fetch(r).then(res => { const cp = res.clone(); caches.open(VERSION).then(c => c.put("./", cp)); return res; })
+        .catch(() => caches.match("./"))
     );
     return;
   }
