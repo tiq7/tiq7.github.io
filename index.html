@@ -192,6 +192,12 @@ body.onl #pz,body.onl #sn{display:none}
 #sc .srw.nw{background:#ffce00}
 #sc .sgr{align-items:flex-start}
 #sc .srk,#sc .sbg{line-height:48px}
+#sc{--v:1vh;display:block;overflow-y:auto;padding:0;background:linear-gradient(#17606e,#f5a24a);font-family:"Lilita One","Arial Rounded MT Bold",system-ui,sans-serif}
+@supports(height:1dvh){#sc{--v:1dvh}}
+#sc .scene{position:fixed;inset:0;width:100%;height:100%;max-height:none;filter:none;touch-action:auto;z-index:0}
+#sc .cd{width:100%;max-width:none;max-height:none;overflow:visible;box-sizing:border-box;margin:0 0 16px}
+#sc .olh h2{text-shadow:0 2px 0 #2a140a,0 0 10px rgba(0,0,0,.45)}
+@media(min-width:700px){#sc{background:#1c0e0a}#sc .scene{left:50%;right:auto;width:calc(var(--v)*60);transform:translateX(-50%);box-shadow:0 0 0 4px #2a140a,0 0 50px rgba(0,0,0,.6)}#sc .olw{max-width:min(420px,max(320px,calc(var(--v)*58)))}}
 .hd{position:relative}
 #rx{width:46px;height:46px;padding:0;display:none;place-items:center;margin-left:6px;border:0;background:none;box-shadow:none;cursor:pointer;font-size:32px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
 #rx:active{transform:scale(1.2)}
@@ -238,7 +244,7 @@ body.onl #rx{display:grid}
 <path d="M350 655Q354 610 340 566" stroke="#3b2412" stroke-width="7" fill="none" stroke-linecap="round"/>
 <g stroke="#14724a" stroke-width="7" fill="none" stroke-linecap="round"><path d="M340 566Q316 546 294 562"/><path d="M340 566Q330 538 306 530"/><path d="M340 566Q352 538 378 534"/><path d="M340 566Q366 550 386 568"/></g>
 <path d="M0 690C100 662 220 692 400 666V800H0Z" fill="#0f5c3e"/>
-<rect y="724" width="400" height="76" fill="#4a2a14"/><rect y="728" width="400" height="26" fill="url(#kt)"/>
+
 <g transform="translate(48 340) scale(.8)"><g class="fl"><path d="M-36 0H36Q32 24 8 36Q0 48-8 36Q-32 24-36 0Z" fill="#8a5a33"/><ellipse rx="38" ry="10" fill="#8fbf4f"/><circle cy="-18" r="15" fill="url(#n2)" stroke="#2a140a" stroke-width="3"/></g></g>
 <g transform="translate(352 430) scale(.8)"><g class="fl" style="animation-delay:-2s"><path d="M-36 0H36Q32 24 8 36Q0 48-8 36Q-32 24-36 0Z" fill="#8a5a33"/><ellipse rx="38" ry="10" fill="#8fbf4f"/><circle cy="-18" r="15" fill="url(#n1)" stroke="#2a140a" stroke-width="3"/></g></g>
 <g transform="translate(44 560) scale(.8)"><g class="fl" style="animation-delay:-1s"><path d="M-30 0H30Q26 20 6 30Q0 40-6 30Q-26 20-30 0Z" fill="#8a5a33"/><ellipse rx="32" ry="9" fill="#8fbf4f"/><circle cy="-16" r="13" fill="url(#n1)" stroke="#2a140a" stroke-width="3"/></g></g>
@@ -675,10 +681,11 @@ $("gk").onclick=olBack;
 function olSetOw(n){try{localStorage.setItem("tiq7wo",n)}catch(e){}refresh()}
 async function olFetchStats(){const r=await sb.from("stats").select("wins_online").eq("user_id",OL.me.id).maybeSingle();if(r.error)return;olSetOw(r.data?r.data.wins_online:0)}
 function olRec(){const O=ON;sb.rpc("enregistrer_fin_partie",{p_id:O.id}).then(r=>{if(r.data&&typeof r.data.wins_online=="number")olSetOw(r.data.wins_online)},()=>{})}
-document.body.insertAdjacentHTML("beforeend",'<div id="sc" class="ov" hidden><div class="cd"></div></div>');
+document.body.insertAdjacentHTML("beforeend",'<div id="sc" class="ov" hidden><div class="olw" id="scw"></div></div>');
+{const t=document.createElement("div");t.innerHTML=document.querySelector("#menu .scene").outerHTML.replace(/id="(\w+)"/g,'id="c$1"').replace(/url\(#(\w+)\)/g,'url(#c$1)');$("sc").insertBefore(t.firstChild,$("sc").firstChild)}
 function stOpen(){const w=wins(),i=RK.reduce((a,k,j)=>w>=k[1]?j:a,0),nx=RK[i+1],lo=RK[i][1],pct=Math.min(100,Math.round(w/RK[RK.length-1][1]*100)),rest=nx?nx[1]-w:0,toL=RK[RK.length-1][1]-w;
 const rows=RK.map((k,j)=>{const n=RK[j+1];return `<div class="srw${j<i?" dn":j==i?" nw":""}"><span>${j<i?"✓ ":j==i?"▶ ":""}${k[0]}</span><b>${n?k[1]+" – "+(n[1]-1):k[1]+" et plus"}</b></div>`}).join("");
-$("sc").querySelector(".cd").innerHTML=`<h3>Statistiques</h3><div class="sgr"><div><div class="slb">Rang</div><div class="srk">${RK[i][0]}</div></div><div><div class="slb">Victoires</div><div class="sbg">${w}</div></div></div><div class="sbar"><i style="width:${pct}%"></i></div><p class="snt">${nx?"Encore "+rest+" victoire"+(rest>1?"s":"")+" pour devenir "+nx[0]+".":"Rang maximum atteint !"}</p>${nx&&i<RK.length-2?`<p class="snt">Légende : encore ${toL} victoires.</p>`:""}<div class="slist">${rows}</div><p class="snt" style="margin-top:10px">En ligne : ${ow()} · Contre l’ordinateur : ${lw()}</p><button class="pk g" id="scx">OK</button>`;
+$("scw").innerHTML=`<div class="olh"><button class="wb" id="scx" aria-label="Retour">←</button><h2>Statistiques</h2><span class="wsp"></span></div><div class="cd"><div class="sgr"><div><div class="slb">Rang</div><div class="srk">${RK[i][0]}</div></div><div><div class="slb">Victoires</div><div class="sbg">${w}</div></div></div><div class="sbar"><i style="width:${pct}%"></i></div><p class="snt">${nx?"Encore "+rest+" victoire"+(rest>1?"s":"")+" pour devenir "+nx[0]+".":"Rang maximum atteint !"}</p>${nx&&i<RK.length-2?`<p class="snt">Légende : encore ${toL} victoires.</p>`:""}<div class="slist">${rows}</div><p class="snt" style="margin-top:10px">En ligne : ${ow()} · Contre l’ordinateur : ${lw()}</p></div>`;
 $("scx").onclick=()=>{$("sc").hidden=true};$("sc").hidden=false}
 $("sp").onclick=stOpen;
 const ER=["👏","😮","😅","😂","🤔","🤝"];
