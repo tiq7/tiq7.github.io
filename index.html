@@ -13,10 +13,14 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="T·IQ+7 — A Game of Challenge">
 <meta property="og:description" content="Jeu de stratégie à deux joueurs : en local, contre l’ordinateur ou en ligne.">
-<meta property="og:image" content="https://leonkoumebio.github.io/Before-Down/icon-512.png">
+<meta property="og:image" content="https://leonkoumebio.github.io/Before-Down/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="T·IQ+7">
 <meta property="og:url" content="https://leonkoumebio.github.io/Before-Down/">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="shortcut icon" href="favicon.ico">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Nunito:wght@400;700;900&display=swap">
 <style>
 :root{--bg:#24140f;--ink:#f3e6d3;--mut:#c9b49a;--gold:#d9ad5e;--g:#006a4e;--y:#ffce00;--r:#d01234;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -748,5 +752,5 @@ if(k=="out"){OL.busy=true;try{await sb.auth.signOut()}catch(x){}OL.busy=false;ol
 $("onl").onclick=olOpen;
 setTimeout(()=>{olLib().then(()=>{try{sb=sb||window.supabase.createClient(SBURL,SBKEY)}catch(e){}}).catch(()=>{})},1500);
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")==0)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-setTimeout(()=>alert("H="+innerHeight+" ecran="+screen.height+" vv="+Math.round(window.visualViewport?visualViewport.height:0)+" corps="+document.body.clientHeight+" std="+(navigator.standalone?1:0)),8000);
+
 </script></body></html>
