@@ -8,7 +8,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="T·IQ+7">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="description" content="Jeu de stratégie à deux joueurs : en local, contre l’ordinateur ou en ligne.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="T·IQ+7 — A Game of Challenge">
+<meta property="og:description" content="Jeu de stratégie à deux joueurs : en local, contre l’ordinateur ou en ligne.">
+<meta property="og:image" content="https://leonkoumebio.github.io/Before-Down/icon-512.png">
+<meta property="og:url" content="https://leonkoumebio.github.io/Before-Down/">
+<meta name="twitter:card" content="summary">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Nunito:wght@400;700;900&display=swap">
 <style>
@@ -342,7 +349,10 @@ function pion(){if(mute)return;try{const a=getAC();if(a.state!="running")a.resum
 document.addEventListener("click",e=>{if(e.target.closest("button"))snd(140,.1)});
 let s,mode,lv,sel=-1,pend=null,over=0,busy=false,anim=null,sess=0;let ON=null;
 const $=id=>document.getElementById(id);
-const slot=(p,i)=>[190+i*50,p==2?55:885];
+let VH=940,OFF=120;
+function fit(){const b=$("bd"),w=b.clientWidth,hh=b.clientHeight;if(w>0&&hh>0){VH=Math.max(940,Math.round(700*hh/w));OFF=120+(VH-940)/2}}
+addEventListener("resize",()=>{if(!$("game").hidden)draw()});
+const slot=(p,i)=>[190+i*50,p==2?55:885+(VH-940)];
 function start(m,l){olStopG();ON=null;document.body.classList.remove("onl");MUS.pause();ambStart();sess++;mode=m;lv=l;s={b:Array(24).fill(0),h:[0,10,10],t:1};sel=-1;pend=null;over=0;anim=null;busy=false;$("menu").hidden=true;$("game").hidden=false;draw();nextTurn()}
 function nextTurn(){if(over||!mode||s.t!=2)return;busy=true;const k=sess;draw();
 setTimeout(()=>{if(k!=sess||over)return;const m=ai(s,lv);
@@ -365,16 +375,16 @@ if(pend)return "Moulin ! Touche le pion adverse à retirer.";
 if(placing(s))return `${ON?"À toi":NAME[s.t]} : pose un pion sur une case libre.`;
 return `${ON?"À toi":NAME[s.t]} : ${sel>=0?"touche la case d’arrivée.":"touche le pion à déplacer."}`}
 function pc(x,y,r,p){return `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#p${p})" stroke="#000" stroke-opacity=".55" stroke-width="2"/><ellipse cx="${x-r*.3}" cy="${y-r*.42}" rx="${r*.38}" ry="${r*.22}" fill="#fff" fill-opacity=".28"/>`}
-function draw(){
+function draw(){fit();
 const L=over?[]:gen(s),hum=!(mode&&s.t==2)&&!(ON&&s.t!=ON.my);let vb=s.b,hh=s.h.slice();
 if(pend){vb=s.b.slice();if(pend.f>=0)vb[pend.f]=0;else hh[s.t]--;vb[pend.t]=s.t}
 let tg=[],cp=[],mv=[];
 if(hum&&pend)cp=L.filter(m=>m.f==pend.f&&m.t==pend.t).map(m=>m.c);
-let h=`<svg viewBox="0 0 700 940"><defs>
+let h=`<svg viewBox="0 0 700 ${VH}"><defs>
 <radialGradient id="p1" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#5a3a36"/><stop offset=".55" stop-color="#1a0000"/><stop offset="1" stop-color="#000"/></radialGradient>
 <radialGradient id="p2" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#e86a6a"/><stop offset=".55" stop-color="#a82424"/><stop offset="1" stop-color="#5c0f0f"/></radialGradient>
 <clipPath id="lg"><ellipse cx="350" cy="350" rx="78" ry="48"/></clipPath></defs>
-<g transform="translate(0,120)"><rect x="4" y="4" width="692" height="692" fill="#8f6240" stroke="#000" stroke-width="8"/>
+<g transform="translate(0,${OFF})"><rect x="4" y="4" width="692" height="692" fill="#8f6240" stroke="#000" stroke-width="8"/>
 <rect x="36" y="36" width="628" height="628" fill="#9bc66a"/><rect x="245.3" y="245.3" width="209.4" height="209.4" fill="#8f6240"/>`;
 for(const m of mills)h+=`<line x1="${X[m[0]]}" y1="${Y[m[0]]}" x2="${X[m[2]]}" y2="${Y[m[2]]}" stroke="#2f4a22" stroke-width="6" stroke-linecap="round"/>`;
 h+=`<g clip-path="url(#lg)"><rect x="270" y="300" width="160" height="62" fill="#e8352b"/><rect x="270" y="362" width="160" height="9" fill="#4f8f2a"/><rect x="270" y="371" width="160" height="9" fill="#f3d23c"/><rect x="270" y="380" width="160" height="9" fill="#4f8f2a"/><rect x="270" y="389" width="160" height="11" fill="#f3d23c"/></g>
@@ -383,7 +393,7 @@ h+=`<g clip-path="url(#lg)"><rect x="270" y="300" width="160" height="62" fill="
 for(let n=0;n<24;n++)h+=`<circle cx="${X[n]}" cy="${Y[n]}" r="16" fill="#fff" stroke="#2f4a22" stroke-width="5"/>`;
 let top="";
 for(let n=0;n<24;n++)if(vb[n]){const p=vb[n];let cl="",st="";
-if(anim&&n==anim.t){if(anim.f>=0){cl="sld";st=`--dx:${X[anim.f]-X[n]}px;--dy:${Y[anim.f]-Y[n]}px`}else if(anim.f==-1){const[sx,sy]=slot(anim.p,anim.sl);cl="sld";st=`--dx:${sx-X[n]}px;--dy:${sy-120-Y[n]}px`}}
+if(anim&&n==anim.t){if(anim.f>=0){cl="sld";st=`--dx:${X[anim.f]-X[n]}px;--dy:${Y[anim.f]-Y[n]}px`}else if(anim.f==-1){const[sx,sy]=slot(anim.p,anim.sl);cl="sld";st=`--dx:${sx-X[n]}px;--dy:${sy-OFF-Y[n]}px`}}
 const g=`<g data-pc="${n}" class="${cl}" style="${st}"><ellipse cx="${X[n]+3}" cy="${Y[n]+6}" rx="27" ry="25" fill="#000" fill-opacity=".3"/>${pc(X[n],Y[n],27,p)}</g>`;
 if(cl)top+=g;else h+=g}
 h+=top;
@@ -393,10 +403,10 @@ if(pend&&ON){const pp=s.t;for(const mm of mAt[pend.t])if(mm.every(x=>vb[x]==pp))
 for(const n of cp)h+=`<circle class="pu" cx="${X[n]}" cy="${Y[n]}" r="37" fill="none" stroke="#e2b94c" stroke-opacity=".9" stroke-width="5"/><circle class="pu" cx="${X[n]}" cy="${Y[n]}" r="37" fill="none" stroke="#e2b94c" stroke-opacity=".16" stroke-width="12"/>`;
 for(let n=0;n<24;n++)h+=`<circle data-n="${n}" cx="${X[n]}" cy="${Y[n]}" r="46" fill="transparent" style="cursor:pointer"/>`;
 h+="</g>";
-for(const p of[2,1]){const ty=p==2?10:840,on=!over&&s.t==p,cnt=s.b.filter(x=>x==p).length,nc=Math.max(0,Math.min(10,10-tot(s,3-p)));
+for(const p of[2,1]){const ty=p==2?10:840+(VH-940),on=!over&&s.t==p,cnt=s.b.filter(x=>x==p).length,nc=Math.max(0,Math.min(10,10-tot(s,3-p)));
 h+=`${on?`<rect x="10" y="${ty}" width="680" height="90" rx="16" fill="none" stroke="#d9ad5e" stroke-opacity=".22" stroke-width="10"/>`:""}<rect x="10" y="${ty}" width="680" height="90" rx="16" fill="#8f6240" stroke="${on?"#d9ad5e":"#000"}" stroke-width="6"/><rect x="18" y="${ty+8}" width="664" height="74" rx="11" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
 <text x="30" y="${ty+42}" font-family="Lilita One,Arial Black,sans-serif" font-size="${fs(p)}" fill="#ffe9c2" fill-opacity=".4">${lab(p)}</text><text x="30" y="${ty+40}" font-family="Lilita One,Arial Black,sans-serif" font-size="${fs(p)}" fill="#3b2210">${lab(p)}</text>${pc(40,ty+66,9,p)}<text x="56" y="${ty+74}" font-family="Lilita One,Arial Black,sans-serif" font-size="20" fill="#3b2210">× ${cnt}</text>`;
-for(let i=0;i<10;i++){const[x,y]=slot(p,i);h+=`<circle cx="${x}" cy="${y+2}" r="24" fill="#e8c08e" fill-opacity=".5"/><circle cx="${x}" cy="${y}" r="23" fill="#24130a"/><circle cx="${x}" cy="${y+3}" r="20" fill="#3d2412"/>`;if(i<hh[p])h+=`<g data-tr="${p}-${i}">${pc(x,y+1,21,p)}</g>`;if(i>=10-nc){let cl="",st="";if(i==10-nc&&anim&&anim.c>=0&&anim.v==3-p){cl="fly";st=`--dx:${X[anim.c]-x}px;--dy:${Y[anim.c]+120-y}px`}h+=`<g class="${cl}" style="${st}">${pc(x,y+1,21,3-p)}</g>`}}}
+for(let i=0;i<10;i++){const[x,y]=slot(p,i);h+=`<circle cx="${x}" cy="${y+2}" r="24" fill="#e8c08e" fill-opacity=".5"/><circle cx="${x}" cy="${y}" r="23" fill="#24130a"/><circle cx="${x}" cy="${y+3}" r="20" fill="#3d2412"/>`;if(i<hh[p])h+=`<g data-tr="${p}-${i}">${pc(x,y+1,21,p)}</g>`;if(i>=10-nc){let cl="",st="";if(i==10-nc&&anim&&anim.c>=0&&anim.v==3-p){cl="fly";st=`--dx:${X[anim.c]-x}px;--dy:${Y[anim.c]+OFF-y}px`}h+=`<g class="${cl}" style="${st}">${pc(x,y+1,21,3-p)}</g>`}}}
 $("bd").innerHTML=h+"</svg>";
 $("st").innerHTML=status()+(over&&!ON?`<button class="bt sm" id="ag">Rejouer</button>`:"");
 if(over&&!ON)$("ag").onclick=()=>start(mode,lv);if(over&&ON&&!ON.rs){ON.rs=1;setTimeout(olResult,ON.left?300:1300)}}
@@ -407,7 +417,7 @@ $("bd").addEventListener("pointerdown",e=>{
 if(over||busy||pend||dg||(mode&&s.t==2)||(ON&&s.t!=ON.my))return;
 const q=svgPt(e),p=s.t;let src=null;
 if(placing(s)){for(let i=0;i<s.h[p];i++){const[x,y]=slot(p,i);if((q.x-x)**2+(q.y-y)**2<25*25){src={tr:i,x,y};break}}}
-else{const n=nearest(q.x,q.y-120,38);if(n>=0&&s.b[n]==p)src={n,x:X[n],y:Y[n]+120}}
+else{const n=nearest(q.x,q.y-OFF,38);if(n>=0&&s.b[n]==p)src={n,x:X[n],y:Y[n]+OFF}}
 if(src)pion();if(src)dg={src,sx:e.clientX,sy:e.clientY,id:e.pointerId,on:false,touch:e.pointerType!="mouse",p}});
 function startGhost(){const sv=$("bd").querySelector("svg"),src=dg.src,p=dg.p;
 const el=src.tr!=null?sv.querySelector(`[data-tr="${p}-${src.tr}"]`):sv.querySelector(`[data-pc="${src.n}"]`);
@@ -425,7 +435,7 @@ dg.g.style.transform=`translate(${dg.x}px,${dg.y}px)`});
 function endDrag(e){
 if(!dg||e.pointerId!=dg.id)return;const d=dg;dg=null;if(!d.on)return;
 noClick=Date.now()+350;let ok=false;
-const n=e.type=="pointerup"?nearest(d.x,d.y-120,62):-1;
+const n=e.type=="pointerup"?nearest(d.x,d.y-OFF,62):-1;
 if(n>=0){const L=gen(s),ms=d.src.tr!=null?L.filter(m=>m.t==n):L.filter(m=>m.f==d.src.n&&m.t==n);
 if(ms.length){ok=true;d.g.remove();dragged=true;choose(ms,d.src.tr!=null?-1:d.src.n,n);dragged=false}}
 if(!ok){d.g.style.transition="transform .2s";d.g.style.transform=`translate(${d.src.x}px,${d.src.y}px)`;setTimeout(()=>{d.g.remove();if(d.el)d.el.style.visibility=""},210)}}
@@ -700,7 +710,7 @@ try{ON.ch.send({type:"broadcast",event:"emo",payload:{p:ON.my,e}})}catch(x){}
 olShowE(ON.my,e)}
 function olEmo(d){if(!ON||!d||!ER.includes(d.e)||d.p!=3-ON.my||Date.now()-(ON.rr||0)<2000)return;ON.rr=Date.now();olShowE(d.p,d.e)}
 function olShowE(p,e){const sv=$("bd").querySelector("svg");if(!sv)return;
-const pt=sv.createSVGPoint();pt.x=350;pt.y=470;const c=pt.matrixTransform(sv.getScreenCTM());
+const pt=sv.createSVGPoint();pt.x=350;pt.y=OFF+350;const c=pt.matrixTransform(sv.getScreenCTM());
 const d=document.createElement("div");d.className="rxb";d.textContent=e;d.style.left=c.x+"px";d.style.top=c.y+"px";document.body.appendChild(d);setTimeout(()=>d.remove(),2000)}
 function olNote(t,p){const gr=$("gr");gr.className="ov l";gr.querySelector("h3").textContent=t;gr.querySelector("p").textContent=p;gr.hidden=false}
 async function olResume(){if(ON||OL.pl||!$("game").hidden)return;OL.pl=1;
@@ -738,4 +748,5 @@ if(k=="out"){OL.busy=true;try{await sb.auth.signOut()}catch(x){}OL.busy=false;ol
 $("onl").onclick=olOpen;
 setTimeout(()=>{olLib().then(()=>{try{sb=sb||window.supabase.createClient(SBURL,SBKEY)}catch(e){}}).catch(()=>{})},1500);
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")==0)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+setTimeout(()=>alert("H="+innerHeight+" ecran="+screen.height+" vv="+Math.round(window.visualViewport?visualViewport.height:0)+" corps="+document.body.clientHeight+" std="+(navigator.standalone?1:0)),8000);
 </script></body></html>
