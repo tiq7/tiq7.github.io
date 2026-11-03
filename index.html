@@ -751,6 +751,13 @@ if(k=="wa"){const t="Défie-moi sur T·IQ+7 ! Mon code joueur : "+OL.me.code+"\n
 if(k=="out"){OL.busy=true;try{await sb.auth.signOut()}catch(x){}OL.busy=false;olStop();OL.me=null;OL.inv=[];OL.sent=[];OL.seen=null;OL.seenF=null;OL.fr=[];OL.game=null;OL.view="auth";OL.tab="in";OL.msg="";const nb=$("onl").querySelector(".bdg");if(nb)nb.hidden=true;olRender()}};
 $("onl").onclick=olOpen;
 setTimeout(()=>{olLib().then(()=>{try{sb=sb||window.supabase.createClient(SBURL,SBKEY)}catch(e){}}).catch(()=>{})},1500);
-if("serviceWorker" in navigator&&location.protocol.indexOf("http")==0)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")==0){
+const swWarm=()=>{const c=navigator.serviceWorker.controller;if(c&&navigator.onLine)c.postMessage("warm")};
+navigator.serviceWorker.addEventListener("controllerchange",swWarm);
+navigator.serviceWorker.addEventListener("message",ev=>{const d=ev.data;if(!d||!d.warm)return;let t="";
+if(d.missing==0&&d.fonts>0){try{if(localStorage.getItem("tiq7off"))return;localStorage.setItem("tiq7off","1")}catch(e){}t="Hors connexion : prêt ✓"}
+else t="Hors connexion incomplet : "+d.missing+" son(s) manquant(s)"+(d.fonts>0?"":", polices absentes");
+const n=$("ts");n.textContent=t;n.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>n.classList.remove("on"),6000)});
+addEventListener("load",()=>navigator.serviceWorker.register("sw.js").then(()=>setTimeout(swWarm,1500)).catch(()=>{}))}
 
 </script></body></html>

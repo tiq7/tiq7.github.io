@@ -1,47 +1,21 @@
 // T·IQ+7 — service worker : jeu complet hors connexion (sauf le mode en ligne).
 // Changer VERSION à chaque nouvelle version du jeu (page, icônes). Changer MEDIA seulement si les .mp3 changent.
-const VERSION = "tiq7-v3";
+const VERSION = "tiq7-v4";
 const MEDIA = "tiq7-media-v1";
-const CORE = ["./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./favicon-32.png", "./favicon.ico"];
-const AUDIO = ["./pion.mp3", "./musique.mp3", "./ambiance1.mp3", "./ambiance2.mp3", "./ambiance3.mp3"];
+const abs = u => new URL(u, self.registration.scope).href;
+const CORE = ["manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png", "favicon-32.png", "favicon.ico"].map(abs);
+const AUDIO = ["pion.mp3", "musique.mp3", "ambiance1.mp3", "ambiance2.mp3", "ambiance3.mp3"].map(abs);
 const FONT_CSS = [
   "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Nunito:wght@400;700;900&display=swap",
   "https://fonts.googleapis.com/css2?family=Lilita+One&display=swap"
 ];
 
-async function warmFonts() {
-  const c = await caches.open(MEDIA);
-  for (const u of FONT_CSS) {
-    try {
-      const res = await fetch(u);
-      if (!res.ok) continue;
-      await c.put(u, res.clone());
-      const css = await res.text();
-      const files = [...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com[^)]+)\)/g)].map(m => m[1]);
-      await Promise.allSettled(files.map(async f => {
-        if (await c.match(f)) return;
-        const r = await fetch(f);
-        if (r.ok) await c.put(f, r);
-      }));
-    } catch (e) {}
-  }
-}
-
-async function warmAudio() {
-  const m = await caches.open(MEDIA);
-  await Promise.allSettled(AUDIO.map(async u => {
-    if (await m.match(u, { ignoreVary: true })) return;
-    const r = await fetch(u);
-    if (r.ok && r.status === 200) await m.put(u, r);
-  }));
-}
-
+// Installation rapide : seulement la page et les petits fichiers. Les sons et polices sont téléchargés ensuite en arrière-plan.
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
     const c = await caches.open(VERSION);
-    await c.add("./");
+    await c.add(abs("./"));
     await Promise.allSettled(CORE.map(u => c.add(u)));
-    await Promise.allSettled([warmFonts(), warmAudio()]);
     await self.skipWaiting();
   })());
 });
@@ -53,17 +27,58 @@ self.addEventListener("activate", e => {
   );
 });
 
-// Les fichiers audio doivent répondre aux demandes partielles (Range), sinon Safari refuse de les lire.
-async function serveAudio(req) {
-  const m = await caches.open(MEDIA);
-  let res = await m.match(req.url, { ignoreVary: true });
-  if (!res) {
-    let net;
-    try { net = await fetch(req.url); } catch (_) { return new Response("", { status: 503 }); }
-    if (!net.ok || net.status !== 200) return net;
-    m.put(req.url, net.clone());
-    res = net;
+const inflight = new Set();
+async function cacheOne(u) {
+  if (inflight.has(u)) return;
+  inflight.add(u);
+  try {
+    const m = await caches.open(MEDIA);
+    if (await m.match(u, { ignoreVary: true })) return;
+    const r = await fetch(u);
+    if (r.ok && r.status === 200) await m.put(u, r);
+  } catch (_) {} finally { inflight.delete(u); }
+}
+
+async function warmFonts() {
+  const c = await caches.open(MEDIA);
+  for (const u of FONT_CSS) {
+    try {
+      const res = await fetch(u);
+      if (!res.ok) continue;
+      await c.put(u, res.clone());
+      const css = await res.text();
+      const files = [...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com[^)]+)\)/g)].map(m => m[1]);
+      for (const f of files) {
+        try { if (!(await c.match(f))) { const r = await fetch(f); if (r.ok) await c.put(f, r); } } catch (_) {}
+      }
+    } catch (_) {}
   }
+}
+
+async function warm() {
+  await warmFonts();
+  for (const u of AUDIO) await cacheOne(u);
+  const m = await caches.open(MEDIA);
+  let missing = 0;
+  for (const u of AUDIO) if (!(await m.match(u, { ignoreVary: true }))) missing++;
+  const fonts = (await m.keys()).filter(k => k.url.indexOf("fonts.gstatic.com") > -1).length;
+  return { missing, fonts };
+}
+
+let warming = null;
+self.addEventListener("message", e => {
+  if (e.data !== "warm") return;
+  const src = e.source;
+  if (!warming) warming = warm().finally(() => { warming = null; });
+  e.waitUntil(warming.then(r => { if (src) src.postMessage({ warm: true, missing: r.missing, fonts: r.fonts }); }));
+});
+
+// Les sons doivent répondre aux demandes partielles (Range), sinon Safari refuse de les lire.
+async function serveAudio(e) {
+  const req = e.request;
+  const m = await caches.open(MEDIA);
+  const res = await m.match(req.url, { ignoreVary: true });
+  if (!res) { e.waitUntil(cacheOne(req.url)); return fetch(req); }
   const rg = req.headers.get("range");
   if (!rg) return res;
   const ct = res.headers.get("Content-Type") || "audio/mpeg";
@@ -93,22 +108,22 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  // Tout le reste venant d'autres sites (Supabase, bibliothèque en ligne…) : on ne touche pas
+  // Autres sites (Supabase, bibliothèque en ligne…) : on ne touche pas
   if (u.origin !== location.origin) return;
 
   // Sons
-  if (/\.mp3$/i.test(u.pathname)) { e.respondWith(serveAudio(r)); return; }
+  if (/\.mp3$/i.test(u.pathname)) { e.respondWith(serveAudio(e)); return; }
 
-  // Page du jeu : réseau d'abord (dernière version), mais cache si pas de réseau ou réseau trop lent
+  // Page du jeu : réseau d'abord (dernière version), cache si pas de réseau ou réseau trop lent (4 s)
   if (r.mode === "navigate") {
     e.respondWith((async () => {
       const c = await caches.open(VERSION);
-      const net = fetch(r).then(res => { if (res.ok) c.put("./", res.clone()); return res; });
+      const net = fetch(r).then(res => { if (res.ok) c.put(abs("./"), res.clone()); return res; });
       net.catch(() => {});
       try {
         return await Promise.race([net, new Promise((_, ko) => setTimeout(ko, 4000))]);
       } catch (_) {
-        return (await c.match("./")) || net;
+        return (await c.match(abs("./"))) || net;
       }
     })());
     return;
