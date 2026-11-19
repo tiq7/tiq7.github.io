@@ -244,6 +244,17 @@ body.onl #rx{display:grid}
 #im .pk{width:100%;margin:0 0 12px;font-family:"Lilita One","Arial Rounded MT Bold",system-ui,sans-serif}
 #im .pk:last-child{margin-bottom:4px}
 #menu .cbs{gap:8px}
+#bl{position:fixed;z-index:16}
+#bl .cd{width:min(86%,320px);text-align:center}
+#bl h3{margin:0 0 8px;text-align:center;color:#8a1c14}
+#bl p{margin:0 0 16px;font:700 16px/1.4 Nunito,system-ui,sans-serif}
+#bl .pk{width:100%;margin:0 0 12px;font-family:"Lilita One","Arial Rounded MT Bold",system-ui,sans-serif}
+#bl .pk:last-child{margin-bottom:4px}
+#rl .cd{width:100%;max-width:360px;box-sizing:border-box;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto}
+#rl h4{margin:14px 0 4px;font:400 18px "Lilita One",sans-serif;color:#8a1c14}
+#rl h3+h4{margin-top:4px}
+#rl p{margin:0 0 6px;font-size:14px}
+#rl ul{margin:0;padding-left:20px;font-size:14px}
 </style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap"></head>
 <body><main>
 <section id="menu">
@@ -293,12 +304,28 @@ body.onl #rx{display:grid}
 <button class="cb" id="ins" style="background:#e8b4a0" aria-label="Installer le jeu"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
 <button class="cb" id="snm" style="background:#c9d64a" aria-label="Son"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg></button>
 </div></div>
-<div class="ov" id="rl" hidden><div class="cd"><h3>Règles</h3><ul>
-<li>10 pions par joueur, 24 intersections. Les Noirs commencent.</li>
-<li>Phase 1 : chacun pose un pion à tour de rôle.</li>
-<li>Phase 2 : on glisse un pion vers une case voisine, le long des lignes.</li>
-<li>Trois pions alignés forment un moulin : on retire n’importe quel pion adverse.</li>
-<li>Défaite : moins de 3 pions, ou aucun coup possible.</li></ul>
+<div class="ov" id="rl" hidden><div class="cd"><h3>Règles du jeu</h3>
+<h4>But du jeu</h4>
+<p>Réduis ton adversaire à 2 pions, ou bloque-le pour qu’il ne puisse plus bouger.</p>
+<h4>Le plateau</h4>
+<p>24 intersections réparties sur 3 carrés emboîtés. Chaque joueur a 10 pions (Noir ou Rouge). Les cases au milieu des côtés relient un carré à l’autre.</p>
+<h4>Qui commence ?</h4>
+<p>Les Noirs commencent la première partie. Ensuite, c’est toujours le perdant de la manche précédente qui commence (à deux comme contre l’ordinateur).</p>
+<h4>Phase 1 : la pose</h4>
+<p>À tour de rôle, chacun pose un pion sur une intersection libre (touche la case, ou glisse le pion depuis ta réserve). Les pions posés ne bougent pas pendant cette phase. Elle se termine quand les 20 pions sont posés.</p>
+<h4>Phase 2 : le déplacement</h4>
+<ul>
+<li>Touche un de tes pions, puis la case libre voisine (ou glisse-le).</li>
+<li>Un pion avance d’une seule case, le long d’une ligne : pas de diagonale, pas de saut.</li>
+<li><b>Pas de retour en arrière :</b> un pion qui vient de glisser de A vers B ne peut pas retourner en A au tour suivant. Tu dois d’abord déplacer un autre pion.</li></ul>
+<h4>Le moulin</h4>
+<p>Quand tu alignes 3 pions de ta couleur sur une même ligne, tu formes un moulin : tu retires aussitôt n’importe quel pion de ton adversaire, même s’il fait partie d’un moulin (touche-le). Cela marche pendant la pose comme pendant le déplacement. Chaque nouveau moulin te permet de retirer un pion.</p>
+<h4>Comment perdre ?</h4>
+<ul>
+<li>Il te reste moins de 3 pions (sur le plateau ou en réserve).</li>
+<li>Tu es bloqué : pendant la phase 2, aucun de tes pions ne peut bouger (cases voisines occupées, ou seul coup possible = retour interdit). Tu perds immédiatement.</li></ul>
+<h4>Statut</h4>
+<p>Les victoires en ligne et contre l’ordinateur (Moyen ou Difficile) te font gagner des étoiles ★ et monter de rang.</p>
 <button class="pk g" id="rlx" style="width:100%;margin:14px 0 6px">OK</button></div></div>
 <div id="ts"></div>
 </section>
@@ -325,9 +352,9 @@ function gen(s){const p=s.t,q=3-p,out=[];
 const add=(f,t)=>{const b=s.b.slice();if(f>=0)b[f]=0;b[t]=p;
 if(inMill(b,t,p)){const c=caps(b,q);if(c.length){c.forEach(x=>out.push({f,t,c:x}));return}}out.push({f,t,c:-1})};
 if(placing(s)){for(let t=0;t<24;t++)if(!s.b[t])add(-1,t)}
-else for(let f=0;f<24;f++)if(s.b[f]==p)for(const t of adj[f])if(!s.b[t])add(f,t);
+else{const bk=s.bk&&s.bk[p];for(let f=0;f<24;f++)if(s.b[f]==p)for(const t of adj[f])if(!s.b[t]&&!(bk&&bk.f==f&&bk.t==t))add(f,t)}
 return out}
-function app(s,m){const b=s.b.slice(),h=s.h.slice(),p=s.t;if(m.f>=0)b[m.f]=0;else h[p]--;b[m.t]=p;if(m.c>=0)b[m.c]=0;return{b,h,t:3-p}}
+function app(s,m){const b=s.b.slice(),h=s.h.slice(),p=s.t;if(m.f>=0)b[m.f]=0;else h[p]--;b[m.t]=p;if(m.c>=0)b[m.c]=0;const bk=(s.bk||[null,null,null]).slice();bk[p]=m.f>=0?{f:m.t,t:m.f}:null;return{b,h,t:3-p,bk}}
 function win(s){const t=s.t;if(tot(s,t)<3)return 3-t;if(tot(s,3-t)<3)return t;if(!placing(s)&&!gen(s).length)return 3-t;return 0}
 function ev(s,me){const o=3-me;let v=(tot(s,me)-tot(s,o))*10;
 for(const m of mills){let a=0,c=0,e=0;for(const n of m){const x=s.b[n];x==me?a++:x==o?c++:e++}
@@ -366,7 +393,7 @@ let VH=940,OFF=120;
 function fit(){const b=$("bd"),w=b.clientWidth,hh=b.clientHeight;if(w>0&&hh>0){VH=Math.max(940,Math.round(700*hh/w));OFF=120+(VH-940)/2}}
 addEventListener("resize",()=>{if(!$("game").hidden)draw()});
 const slot=(p,i)=>[190+i*50,p==2?55:885+(VH-940)];
-function start(m,l){olStopG();ON=null;document.body.classList.remove("onl");MUS.pause();ambStart();sess++;mode=m;lv=l;s={b:Array(24).fill(0),h:[0,10,10],t:1};sel=-1;pend=null;over=0;anim=null;busy=false;$("menu").hidden=true;$("game").hidden=false;draw();nextTurn()}
+function start(m,l){olStopG();ON=null;document.body.classList.remove("onl");MUS.pause();ambStart();sess++;mode=m;lv=l;s={b:Array(24).fill(0),h:[0,10,10],t:LSTR[m]||1};BLK=0;NOTE="";$("bl").hidden=true;sel=-1;pend=null;over=0;anim=null;busy=false;$("menu").hidden=true;$("game").hidden=false;draw();nextTurn()}
 function nextTurn(){if(over||!mode||s.t!=2)return;busy=true;const k=sess;draw();
 setTimeout(()=>{if(k!=sess||over)return;const m=ai(s,lv);
 if(m.f>=0){sel=m.f;anim=null;draw();setTimeout(()=>{if(k==sess&&!over)play(m)},700)}else play(m)},550)}
@@ -374,14 +401,15 @@ function play(m,rm){busy=false;const p=s.t,had=!!pend;
 anim={f:(had||dragged)?-2:m.f,t:m.t,c:m.c,v:3-p,p,sl:m.f<0?s.h[p]-1:-1};
 s=app(s,m);sel=-1;pend=null;pion();
 if(m.c>=0){setTimeout(()=>snd(80,.3),150);try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
-over=win(s);if(over)setTimeout(()=>snd(520,.4),300);if(over==1&&mode&&lv>1)addWin();if(ON&&!rm)olPush(m,p);draw();nextTurn()}
+over=win(s);if(over&&!ON)LSTR[mode]=3-over;if(over)setTimeout(()=>snd(520,.4),300);if(over==1&&mode&&lv>1)addWin();if(ON&&!rm)olPush(m,p);draw();nextTurn()}
 function choose(ms,f,t){if(ms[0].c<0)play(ms[0]);else{anim={f:dragged?-2:f,t,c:-1,p:s.t,sl:f<0?s.h[s.t]-1:-1};pend={f,t};draw()}}
 function click(n){if(over||busy||(mode&&s.t==2)||(ON&&s.t!=ON.my))return;const L=gen(s);
 if(pend){const m=L.find(m=>m.f==pend.f&&m.t==pend.t&&m.c==n);if(m)play(m);return}
 if(placing(s)){const ms=L.filter(m=>m.t==n);if(ms.length)choose(ms,-1,n);return}
-if(s.b[n]==s.t){if(L.some(m=>m.f==n)){sel=n;anim=null;draw()}return}
-if(sel>=0){const ms=L.filter(m=>m.f==sel&&m.t==n);if(ms.length)choose(ms,sel,n)}}
-function status(){if(over)return ON?((over==ON.my?(ON.left?"Ton adversaire est parti !":"Tu as gagné !"):esc(ON.nm[over])+" gagne !")+(ON.nx?" Revanche proposée.":"")):`${NAME[over]} gagne la partie !`;
+if(s.b[n]==s.t){if(L.some(m=>m.f==n)){sel=n;anim=null;draw()}else if(bkd(n))flash("Ce pion vient de bouger : déplace un autre pion d’abord.");return}
+if(sel>=0){const ms=L.filter(m=>m.f==sel&&m.t==n);if(ms.length)choose(ms,sel,n);else if(bkd(sel,n))flash("Interdit : un pion ne peut pas revenir tout de suite en arrière. Déplace un autre pion.")}}
+function status(){if(over)return ON?((over==ON.my?(ON.left?"Ton adversaire est parti !":"Tu as gagné !"):esc(ON.nm[over])+" gagne !")+(ON.nx?" Revanche proposée.":"")):(tot(s,3-over)>=3?(mode?(over==1?"Tu as gagné par blocage !":"Tu as perdu par blocage !"):`${NAME[over]} gagne par blocage !`):`${NAME[over]} gagne la partie !`);
+if(NOTE)return NOTE;
 if(ON&&s.t!=ON.my)return pend?esc(ON.nm[s.t])+" forme un moulin !":"Au tour de "+esc(ON.nm[s.t])+"…";
 if(busy)return mode?"Le Rouge (ordinateur) joue…":"";
 if(pend)return "Moulin ! Touche le pion adverse à retirer.";
@@ -422,7 +450,7 @@ h+=`${on?`<rect x="10" y="${ty}" width="680" height="90" rx="16" fill="none" str
 for(let i=0;i<10;i++){const[x,y]=slot(p,i);h+=`<circle cx="${x}" cy="${y+2}" r="24" fill="#e8c08e" fill-opacity=".5"/><circle cx="${x}" cy="${y}" r="23" fill="#24130a"/><circle cx="${x}" cy="${y+3}" r="20" fill="#3d2412"/>`;if(i<hh[p])h+=`<g data-tr="${p}-${i}">${pc(x,y+1,21,p)}</g>`;if(i>=10-nc){let cl="",st="";if(i==10-nc&&anim&&anim.c>=0&&anim.v==3-p){cl="fly";st=`--dx:${X[anim.c]-x}px;--dy:${Y[anim.c]+OFF-y}px`}h+=`<g class="${cl}" style="${st}">${pc(x,y+1,21,3-p)}</g>`}}}
 $("bd").innerHTML=h+"</svg>";
 $("st").innerHTML=status()+(over&&!ON?`<button class="bt sm" id="ag">Rejouer</button>`:"");
-if(over&&!ON)$("ag").onclick=()=>start(mode,lv);if(over&&ON&&!ON.rs){ON.rs=1;setTimeout(olResult,ON.left?300:1300)}}
+if(over&&!ON)$("ag").onclick=()=>start(mode,lv);if(over&&!ON&&!BLK&&tot(s,3-over)>=3){BLK=1;blkOpen()}if(over&&ON&&!ON.rs){ON.rs=1;setTimeout(olResult,ON.left?300:1300)}}
 let dg=null,noClick=0,dragged=false;
 function svgPt(e){const sv=$("bd").querySelector("svg"),pt=sv.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(sv.getScreenCTM().inverse())}
 function nearest(x,y,r){let b=-1,d=r*r;for(let n=0;n<24;n++){const q=(X[n]-x)**2+(Y[n]-y)**2;if(q<d){d=q;b=n}}return b}
@@ -697,7 +725,7 @@ const r=await sb.rpc("presence_partie",{p_id:O.id});if(ON===O&&r.data===true)olS
 function olResult(){if(!ON||!over)return;olRec();const w=over==ON.my,gr=$("gr");
 gr.className="ov "+(w?"w":"l");
 gr.querySelector("h3").textContent=ON.left?"Adversaire parti":w?"Vainqueur":"Défaite";
-gr.querySelector("p").textContent=ON.left?"Ton adversaire a quitté la partie.":ON.ab==1?"Tu as dépassé les 40 secondes d’attente.":ON.ab==2?"Tu as quitté la partie.":w?"Bravo, tu as battu "+ON.nm[3-ON.my]+" !":ON.nm[over]+" remporte la partie.";
+gr.querySelector("p").textContent=ON.left?"Ton adversaire a quitté la partie.":ON.ab==1?"Tu as dépassé les 40 secondes d’attente.":ON.ab==2?"Tu as quitté la partie.":tot(s,3-over)>=3?(w?"Tu as gagné par blocage.":"Tu as perdu par blocage."):w?"Bravo, tu as battu "+ON.nm[3-ON.my]+" !":ON.nm[over]+" remporte la partie.";
 gr.hidden=false}
 function olBack(){try{localStorage.removeItem("tiq7g")}catch(e){}$("gr").hidden=true;olLeave();olEl.hidden=false;OL.view="hub";OL.msg="";olRender()}
 document.body.insertAdjacentHTML("beforeend",'<div id="gr" class="ov" hidden><div class="cd"><h3></h3><p></p><button class="pk g" id="gk">OK</button></div></div>');
@@ -791,4 +819,12 @@ $("ins").onclick=insShow;
 if(isStd())$("ins").hidden=true;
 addEventListener("beforeinstallprompt",e=>{e.preventDefault();DP=e;try{localStorage.removeItem("tiq7inst")}catch(x){}});
 addEventListener("appinstalled",()=>{DP=null;try{localStorage.setItem("tiq7inst","1")}catch(x){}$("il").hidden=true;$("ins").hidden=true;toast("Jeu installé ✓")});
+/* ===== MANCHES / BLOCAGE / ANTI-RETOUR ===== */
+const LSTR=[1,1];let BLK=0,NOTE="";
+const bkd=(f,t)=>{const k=s.bk&&s.bk[s.t];return !!k&&k.f==f&&!s.b[k.t]&&(t==null||k.t==t)};
+function flash(t){NOTE=t;draw();clearTimeout(flash.t);flash.t=setTimeout(()=>{NOTE="";draw()},2600)}
+document.body.insertAdjacentHTML("beforeend",'<div id="bl" class="ov" hidden><div class="cd"><h3>Joueur bloqué !</h3><p id="blp"></p><button class="pk g" id="blr">Rejouer</button><button class="pk s" id="blm">Menu</button></div></div>');
+function blkOpen(){const k=sess;setTimeout(()=>{if(k!=sess||!over||ON)return;const hh=$("bl").querySelector("h3");hh.textContent=mode?(over==1?"Victoire !":"Défaite"):"Blocage";hh.style.color=mode&&over==1?"#2d5a12":"#8a1c14";$("blp").textContent=mode?(over==1?"Tu as gagné par blocage.":"Tu as perdu par blocage."):NAME[over]+" gagne par blocage.";$("bl").hidden=false},900)}
+$("blr").onclick=()=>{$("bl").hidden=true;start(mode,lv)};
+$("blm").onclick=()=>{$("bl").hidden=true;$("bm").onclick();refresh();musicStart()};
 </script></body></html>

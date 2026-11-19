@@ -1,6 +1,6 @@
 // T·IQ+7 — service worker : jeu complet hors connexion (sauf le mode en ligne).
 // Changer VERSION à chaque nouvelle version du jeu (page, icônes). Changer MEDIA seulement si les .mp3 changent.
-const VERSION = "tiq7-v4";
+const VERSION = "tiq7-v6";
 const MEDIA = "tiq7-media-v1";
 const abs = u => new URL(u, self.registration.scope).href;
 const CORE = ["manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png", "favicon-32.png", "favicon.ico"].map(abs);
